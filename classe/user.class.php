@@ -5,6 +5,7 @@ class User{
     private $firstName; //string
     private $login; //string
     private $phone; //string
+    const session_key = '__user__';
 
     private function __construct(){}
     
@@ -21,7 +22,7 @@ class User{
 HTML;
     }
     
-    public function loginForm($action, $submitText = 'OK'):string{
+    public static function loginForm($action, $submitText = 'OK'):string{
         return <<<HTML
             <form method="GET" action="{$action}">
             <input name="login" type="text" placeholder="Login">
@@ -30,7 +31,9 @@ HTML;
             <button type="submit">$submitTextpass</button>
 HTML;
     }
-    public function createFromAuth(array $data){
+
+    public static function createFromAuth(array $data): self
+    {
         $stmt = MyPDO::getInstance()->prepare(<<<SQL
         SELECT *
         FROM user
@@ -44,11 +47,28 @@ SQL
         $stmt->execute();
         $user = $stmt->fetch();
 
-        if ($user == null){
+        if ($user == null)
+        {
+            $_SESSION[self::session_key]['connected'] = false;
             throw new AuthenticationException();
         }
-
+        $_SESSION[self::session_key]['connected'] = true;
         return $user;
     }
 
+    public static function isConnected(): bool
+    {
+        $_SESSION->start();
+        return isset($_SESSION[self::session_key]['connected']) ? $_SESSION[self::session_key]["connected"] : false;
+    }
+
+    public static function logoutIfRequested(): void
+    {
+        $_SESSION->start();
+        if (isset($_REQUEST["lougout"]))
+        {
+            $_session->start();
+            unset($_SESSION[self::session_key]);
+        }
+    }
 }
