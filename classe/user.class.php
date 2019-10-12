@@ -28,7 +28,7 @@ HTML;
             <input name="login" type="text" placeholder="Login">
             <input name="mdp" type="text" placeholder="Mot de passe">
             
-            <button type="submit">$submitTextpass</button>
+            <button type="submit">$submitText</button>
 HTML;
     }
 
@@ -46,7 +46,7 @@ SQL
         $stmt->setFetchMode(PDO::FETCH_CLASS, self::class);
         $stmt->execute();
         $user = $stmt->fetch();
-
+        Session::start();
         if ($user == null)
         {
             $_SESSION[self::session_key]['connected'] = false;
@@ -58,17 +58,25 @@ SQL
 
     public static function isConnected(): bool
     {
-        $_SESSION->start();
+        Session::start();
         return isset($_SESSION[self::session_key]['connected']) ? $_SESSION[self::session_key]["connected"] : false;
     }
 
     public static function logoutIfRequested(): void
     {
-        $_SESSION->start();
+        Session::start();
         if (isset($_REQUEST["lougout"]))
         {
-            $_session->start();
             unset($_SESSION[self::session_key]);
         }
+    }
+
+    public static function logoutForm($action, $text)
+    {
+        return <<<HTML
+        <form method="GET" action="{$action}">
+        <button type="submit">$text</button>
+HTML;
+
     }
 }
